@@ -96,34 +96,6 @@ El proyecto implementa **Clean Architecture**, garantizando:
 
 ---
 
-## 🎓 Principios SOLID
-
-### S - Single Responsibility Principle
-Cada clase tiene una única razón para cambiar:
-- Controllers → Solo HTTP
-- Services → Solo lógica de negocio  
-- Repositories → Solo persistencia
-
-### O - Open/Closed Principle
-Abierto a extensión, cerrado a modificación:
-- Interfaces permiten nueva funcionalidad sin modificar código existente
-
-### L - Liskov Substitution Principle
-Implementaciones sustituibles:
-- Cualquier implementación de `IRepository` funciona con su `Service`
-- Mocks reemplazan implementaciones reales en tests
-
-### I - Interface Segregation Principle
-Interfaces específicas:
-- Cada repository/service tiene su interfaz adaptada
-
-### D - Dependency Inversion Principle
-Dependencias mediante abstracciones:
-- Controllers dependen de Service Interfaces (Symbol tokens)
-- Services dependen de Repository Interfaces
-
----
-
 ## 📁 Estructura del Proyecto
 
 ```
@@ -204,31 +176,6 @@ src/
 ├── app.module.ts                 # Módulo raíz
 └── main.ts                       # Bootstrap + Swagger
 ```
-
----
-
-## 🛠️ Tecnologías
-
-### Backend Framework
-- **NestJS v11.0.1** - Framework progresivo Node.js
-- **TypeScript** - Lenguaje tipado
-
-### ORM y Base de Datos
-- **TypeORM v0.3.28** - ORM para TypeScript
-- **PostgreSQL** - Base de datos relacional
-- **pg v8.18.0** - Driver PostgreSQL
-
-### Validación
-- **class-validator v0.14.3** - Validación declarativa
-- **class-transformer v0.5.1** - Transformación de objetos
-
-### Documentación
-- **@nestjs/swagger v11.2.6** - OpenAPI 3.0
-- **Swagger UI** - Interfaz interactiva
-
-### Configuración
-- **@nestjs/config v4.0.3** - Variables de entorno
-- **dotenv v17.2.4** - Carga de .env
 
 ---
 
@@ -514,30 +461,10 @@ Abstrae el acceso a datos:
 ### Dependency Injection
 Inyección mediante Symbol tokens:
 ```typescript
-export const IBibliotecaServiceToken = Symbol('IBibliotecaService');
 
-@Controller('bibliotecas')
-export class BibliotecaController {
-  constructor(
-    @Inject(IBibliotecaServiceToken)
-    private readonly service: IBibliotecaService
-  ) {}
-}
-```
 
 ### DTO Pattern
 Objetos de transferencia validados:
-```typescript
-export class CreateLibroDto implements ICreateLibroDto {
-  @IsString()
-  @IsNotEmpty()
-  titulo: string;
-
-  @IsString()
-  @Length(10, 20)
-  isbn: string;
-}
-```
 
 ### Service Layer Pattern
 Lógica de negocio centralizada:
@@ -547,150 +474,6 @@ Lógica de negocio centralizada:
 
 ---
 
-## 📊 Diagramas
-
-### Diagrama de Clases UML
-
-```mermaid
-classDiagram
-    class BibliotecaEntity {
-        -int id PK
-        -string nombre
-        -string direccion
-        -string telefono
-        -string email
-        -Date createdAt
-        -Date updatedAt
-        +getId() int
-        +getNombre() string
-        +setNombre(nombre: string) void
-    }
-
-    class LibroEntity {
-        -int id PK
-        -string titulo
-        -string autor
-        -string isbn UK
-        -EstadoLibro estado
-        -int bibliotecaId FK
-        +getId() int
-        +getEstado() EstadoLibro
-        +setEstado(estado: EstadoLibro) void
-    }
-
-    class EstudianteEntity {
-        -int id PK
-        -string nombres
-        -string apellidos
-        -string email UK
-        -string numeroIdentificacion UK
-        +getId() int
-        +getNombreCompleto() string
-    }
-
-    class PrestamoEntity {
-        -int id PK
-        -int estudianteId FK
-        -Date fechaPrestamo
-        -Date fechaDevolucionEsperada
-        -EstadoPrestamo estado
-        +getId() int
-        +estaVencido() bool
-    }
-
-    class EstadoLibro {
-        <<enumeration>>
-        DISPONIBLE
-        PRESTADO
-        MANTENIMIENTO
-        PERDIDO
-    }
-
-    class EstadoPrestamo {
-        <<enumeration>>
-        ACTIVO
-        DEVUELTO
-        VENCIDO
-    }
-
-    BibliotecaEntity "1" --o "0..*" LibroEntity
-    EstudianteEntity "1" --o "0..*" PrestamoEntity
-    LibroEntity ..> EstadoLibro
-    PrestamoEntity ..> EstadoPrestamo
-```
-
-### Diagrama de Secuencia - Préstamo de Libro
-
-```mermaid
-sequenceDiagram
-    actor Cliente
-    participant Controller
-    participant Service
-    participant Repository
-    participant DB
-
-    Cliente->>Controller: POST /api/v1/prestamos/loan
-    Controller->>Service: loanBook(dto)
-    
-    Service->>Repository: Validar estudiante
-    Repository->>DB: SELECT estudiante
-    DB-->>Repository: estudiante
-    
-    Service->>Repository: Validar libros disponibles
-    Repository->>DB: SELECT libros
-    DB-->>Repository: libros
-    
-    Service->>Repository: Crear préstamo
-    Repository->>DB: INSERT prestamo
-    
-    Service->>Repository: Actualizar estados a PRESTADO
-    Repository->>DB: UPDATE libros
-    
-    Service-->>Controller: Préstamo creado
-    Controller-->>Cliente: 201 Created
-```
-
----
-
-## 🗄️ Scripts de Base de Datos
-
-### Generar migración
-```bash
-npm run migration:generate src/infrastructure/database/migrations/NombreMigracion
-```
-
-### Ejecutar migraciones
-```bash
-npm run migration:run
-```
-
-### Revertir última migración
-```bash
-npm run migration:revert
-```
-
-### Ver estado de migraciones
-```bash
-npm run migration:show
-```
-
----
-
-## 🚀 Comandos NPM
-
-| Comando | Descripción |
-|---------|-------------|
-| `npm run start` | Iniciar aplicación |
-| `npm run start:dev` | Modo desarrollo (hot-reload) |
-| `npm run start:prod` | Modo producción |
-| `npm run build` | Compilar TypeScript |
-| `npm run lint` | Ejecutar ESLint |
-| `npm run format` | Formatear con Prettier |
-| `npm run test` | Tests unitarios |
-| `npm run test:e2e` | Tests end-to-end |
-| `npm run test:cov` | Coverage de tests |
-
----
 
 ## 🎯 Flujo de Trabajo Ejemplo
 
@@ -764,100 +547,6 @@ POST /api/v1/prestamos/return
 | 404 | Not Found | Recurso no existe |
 | 500 | Server Error | Error interno |
 
-### Ejemplos de Errores Comunes
-
-**404 - Estudiante no encontrado**:
-```json
-{
-  "statusCode": 404,
-  "message": "Estudiante con ID 999 no encontrado"
-}
-```
-
-**400 - Libro no disponible**:
-```json
-{
-  "statusCode": 400,
-  "message": "El libro 'Clean Code' no está DISPONIBLE (Estado: PRESTADO)"
-}
-```
-
-**400 - ISBN duplicado**:
-```json
-{
-  "statusCode": 400,
-  "message": "Ya existe un libro con el ISBN 978-0132350884"
-}
-```
-
----
-
-## 🔐 Seguridad
-
-- ✅ Variables de entorno en `.env` (excluido de Git)
-- ✅ Validación automática de DTOs
-- ✅ Sanitización de inputs con class-validator
-- ✅ Manejo centralizado de errores
-- ✅ TypeORM previene SQL injection
-
----
-
-## 📈 Ventajas del Diseño
-
-### ✅ Mantenibilidad
-- Código organizado por capas
-- Fácil localización de bugs
-- Cambios aislados por responsabilidad
-
-### ✅ Escalabilidad
-- Módulos independientes
-- Fácil agregar nuevas features
-- Patrones consistentes
-
-### ✅ Testabilidad
-- Mocks fáciles con DI
-- Interfaces testables
-- Lógica aislada
-
-### ✅ Documentación
-- Swagger automático
-- Código autodocumentado
-- Contratos claros
-
----
-
-## 🎓 Mejores Prácticas Aplicadas
-
-1. ✅ **Clean Architecture** - Separación de capas
-2. ✅ **SOLID Principles** - Código mantenible
-3. ✅ **DRY** - No repetir código
-4. ✅ **KISS** - Mantener simplicidad
-5. ✅ **YAGNI** - Solo lo necesario
-6. ✅ **Migraciones** - Control de BD
-7. ✅ **Type Safety** - TypeScript
-8. ✅ **API Versioning** - Evolución controlada
-
----
-
-## 📝 Notas Importantes
-
-- ⚠️ **NUNCA** usar `synchronize: true` en producción
-- ⚠️ **NUNCA** commitear archivo `.env`
-- ✅ **SIEMPRE** usar migraciones para cambios de BD
-- ✅ **SIEMPRE** validar inputs con DTOs
-- ✅ Documentar cambios en Swagger
-- ✅ Mantener coverage de tests > 80%
-
----
-
-## 📞 Soporte
-
-Para preguntas o soporte:
-- 📧 Email: soporte@biblioteca.com
-- 📖 Documentación: `/api/docs`
-- 🐛 Issues: GitHub Issues
-
----
 
 ## 📄 Licencia
 
